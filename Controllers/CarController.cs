@@ -1,10 +1,10 @@
 ﻿using FirsAPIproject.DAL;
+using FirsAPIproject.DTOs.BrandDtos;
 using FirsAPIproject.Entites;
 using FirsAPIproject.Repositories.Interface;
+using FirsAPIproject.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace FirsAPIproject.Controllers
@@ -13,43 +13,41 @@ namespace FirsAPIproject.Controllers
     [ApiController]
     public class CarController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly ICarRepository _carRepository;
+        private readonly IGenericRepository<Car> _carRepository;
+        private readonly ICarService _service;
 
-        public CarController(AppDbContext context, ICarRepository carRepository)
+        public CarController(ICarRepository carRepository,ICarService service)
         {
-            _context = context;
             _carRepository = carRepository;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var cars = await _carRepository.GetAll();
+            var cars = await _service.GetAll();
+
+
             return Ok(cars);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Car>> GetById(int id)
         {
-            if (id <= 0)
-                return BadRequest("Invalid id value");
+           
 
-            var car = await _carRepository.GetByIdAsync(id);
+            var car = await _service.GetById(id);
 
-            if (car == null)
-                return NotFound();
 
             return Ok(car);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create([FromForm] Car car)
+        public async Task<ActionResult> Create([FromForm] CreateCarDto car)
         {
-            if (car == null || car.Id != 0)
-                return BadRequest("Invalid car object");
+          
 
-            await _carRepository.Create(car);
+            await _service.Create(car);
             await _carRepository.SaveChangesAsync();
 
             return Ok();
